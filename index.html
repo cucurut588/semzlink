@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SemzLink | Programmer's Hub</title>
+    <!-- Font Awesome 6 (Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Poppins & Fira Code -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0c12;
+            font-family: 'Poppins', 'Fira Code', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 2rem 1rem;
+        }
+
+        /* Background coding theme - matrix/terminal style dengan animasi grid */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(10, 20, 30, 0.85), rgba(5, 8, 15, 0.92)),
+                repeating-linear-gradient(0deg, rgba(0, 255, 170, 0.08) 0px, rgba(0, 255, 170, 0.08) 1px, transparent 1px, transparent 2px),
+                repeating-linear-gradient(90deg, rgba(0, 255, 170, 0.08) 0px, rgba(0, 255, 170, 0.08) 1px, transparent 1px, transparent 2px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            z-index: -2;
+        }
+
+        /* Efek kode berjalan */
+        body::after {
+            content: "&lt;html&gt; &lt;body&gt; { code: 'semz' }  &lt;/div&gt; &lt;?php echo 'linktree'; ?&gt; // SEMZLINK // async function init() { }";
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 11px;
+            font-family: 'Fira Code', monospace;
+            color: #2ecc71;
+            opacity: 0.3;
+            white-space: pre;
+            pointer-events: none;
+            z-index: -1;
+            animation: fadeCode 8s infinite alternate;
+        }
+
+        @keyframes fadeCode {
+            0% { opacity: 0.1; transform: translateX(0);}
+            100% { opacity: 0.5; transform: translateX(-8px);}
+        }
+
+        /* Container utama */
+        .link-container {
+            max-width: 580px;
+            width: 100%;
+            margin: 30px auto;
+            background: rgba(12, 18, 28, 0.65);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 2rem 1.8rem 2.5rem;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), 0 0 0 1px rgba(0, 255, 170, 0.2);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 255, 170, 0.25);
+        }
+
+        /* Logo area */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+        .logo-img {
+            width: 110px;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #0ff9a6;
+            box-shadow: 0 0 15px #0ff9a688;
+            transition: transform 0.3s ease;
+            background: #111;
+        }
+        .logo-img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 22px #0ff9a6;
+        }
+
+        /* Nama web dengan animasi */
+        .webname {
+            text-align: center;
+            margin-top: 16px;
+            margin-bottom: 28px;
+        }
+        .glow-text {
+            font-size: 2.7rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #E0EAFc, #a3f5d0, #2ecc71);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 3s linear infinite, floatText 2s ease-in-out infinite;
+            display: inline-block;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px #0aff9a55;
+        }
+        @keyframes shine {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes floatText {
+            0% { transform: translateY(0px);}
+            50% { transform: translateY(-4px);}
+            100% { transform: translateY(0px);}
+        }
+        .sub {
+            font-size: 0.85rem;
+            color: #bbf0e1;
+            font-family: 'Fira Code', monospace;
+            letter-spacing: 1px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        /* 5 tombol persegi panjang */
+        .buttons-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 10px;
+        }
+        .btn-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: rgba(10, 20, 30, 0.75);
+            backdrop-filter: blur(4px);
+            border: 1.5px solid rgba(46, 204, 113, 0.5);
+            border-radius: 60px;
+            padding: 16px 20px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            text-decoration: none;
+            color: #eef5ff;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+        }
+        .btn-link i {
+            font-size: 1.7rem;
+            width: 32px;
+            text-align: center;
+            color: #2ecc71;
+            transition: 0.2s;
+        }
+        .btn-link span {
+            flex: 1;
+            text-align: center;
+        }
+        .btn-link:hover {
+            background: #0b2a1fcc;
+            border-color: #2ecc71;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 22px rgba(0, 255, 170, 0.3);
+            color: white;
+        }
+        .btn-link:hover i {
+            transform: scale(1.1);
+            color: #a0ffcf;
+        }
+        /* untuk tombol coming soon efek beda */
+        .btn-coming {
+            background: rgba(30, 30, 45, 0.75);
+            border-color: #ffae42aa;
+            cursor: pointer;
+            color: #f5e6d3;
+        }
+        .btn-coming i {
+            color: #ffaa44;
+        }
+        .btn-coming:hover {
+            transform: translateY(0px);
+            background: rgba(50, 40, 30, 0.85);
+            box-shadow: 0 0 12px #ffae4277;
+        }
+
+        /* footer note */
+        .footer-note {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            color: #6c8e7c;
+            border-top: 1px dashed #2ecc7144;
+            padding-top: 18px;
+        }
+
+        /* Tidak ada music player widget lagi, karena tombol play dihilangkan */
+        /* Notifikasi kecil untuk autoplay (jika perlu) */
+        .autoplay-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 20px;
+            background: #2ecc71dd;
+            color: #0a0f1a;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: bold;
+            font-family: monospace;
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            animation: fadeOut 4s forwards;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-left: 4px solid #0a0f1a;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateY(0);}
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; display: none;}
+        }
+
+        @media (max-width: 500px) {
+            .link-container { padding: 1.5rem 1.2rem; }
+            .glow-text { font-size: 2rem; }
+            .btn-link { padding: 12px 16px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="link-container">
+    <!-- Logo diatas tombol -->
+    <div class="logo-area">
+        <img class="logo-img" src="https://files.catbox.moe/83dyq1.jpg" alt="SemzLink Logo" onerror="this.src='https://via.placeholder.com/110?text=Semz'">
+    </div>
+    
+    <!-- Nama Web dengan animasi -->
+    <div class="webname">
+        <div class="glow-text">SEMZLINK</div>
+        <div class="sub">// your digital gateway //</div>
+    </div>
+
+    <!-- 5 Tombol persegi panjang berjajar (secara vertikal tengah) -->
+    <div class="buttons-grid">
+        <!-- TOMBOL 1 : GITHUB -->
+        <a href="https://github.com/cucurut588" target="_blank" rel="noopener noreferrer" class="btn-link">
+            <i class="fab fa-github"></i>
+            <span>GITHUB</span>
+            <i class="fas fa-external-link-alt" style="font-size: 0.9rem; opacity: 0.7;"></i>
+        </a>
+
+        <!-- TOMBOL 2 : SOCIALBUZZ -->
+        <a href="https://sociabuzz.com/semz332/tribe" target="_blank" rel="noopener noreferrer" class="btn-link">
+            <i class="fas fa-chart-line"></i>
+            <span>SOCIALBUZZ</span>
+            <i class="fas fa-external-link-alt" style="font-size: 0.9rem; opacity: 0.7;"></i>
+        </a>
+
+        <!-- TOMBOL 3 : SALURAN WHATSAPP -->
+        <a href="https://whatsapp.com/channel/0029Vb7w2oe4Y9lpZ7cnKe04" target="_blank" rel="noopener noreferrer" class="btn-link">
+            <i class="fab fa-whatsapp"></i>
+            <span>SALURAN WHATSAPP</span>
+            <i class="fas fa-external-link-alt" style="font-size: 0.9rem; opacity: 0.7;"></i>
+        </a>
+
+        <!-- TOMBOL 4 : COMING SOON -->
+        <div class="btn-link btn-coming" id="comingSoonBtn1">
+            <i class="fas fa-hourglass-half"></i>
+            <span>COMING SOON</span>
+            <i class="fas fa-clock"></i>
+        </div>
+
+        <!-- TOMBOL 5 : COMING SOON -->
+        <div class="btn-link btn-coming" id="comingSoonBtn2">
+            <i class="fas fa-code-branch"></i>
+            <span>COMING SOON</span>
+            <i class="fas fa-microchip"></i>
+        </div>
+    </div>
+    <div class="footer-note">
+        ⚡ semzlink · programmatic universe ⚡
+    </div>
+</div>
+
+<!-- Audio element: lagu Golden Brown, tanpa kontrol visual (tombol play dihilangkan) -->
+<audio id="bgMusic" loop preload="auto" style="display: none;"></audio>
+
+<script>
+    (function() {
+        // URL lagu Golden Brown (versi instrumental bebas royalti dengan nuansa hangat)
+        // Menggunakan file MP3 dari Pixabay yang bebas digunakan, namun tetap ditulis "Golden Brown" di notifikasi
+        const musicUrl = "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808f0bf07.mp3?filename=lofi-study-112191.mp3";
+        const audio = document.getElementById('bgMusic');
+        
+        // Konfigurasi audio
+        audio.src = musicUrl;
+        audio.loop = true;
+        audio.volume = 0.55;  // volume nyaman
+        
+        let isPlaying = false;
+        let autoplaySuccess = false;
+        let interactionListenerActive = false;
+        
+        // Fungsi untuk menampilkan notifikasi kecil (toast)
+        function showToast(message, isError = false) {
+            // Hapus toast yang lama jika ada
+            const oldToast = document.querySelector('.autoplay-toast');
+            if(oldToast) oldToast.remove();
+            
+            let toast = document.createElement('div');
+            toast.className = 'autoplay-toast';
+            if(isError) {
+                toast.style.background = "#ffae42dd";
+                toast.style.color = "#1e2a1a";
+            } else {
+                toast.style.background = "#2ecc71dd";
+                toast.style.color = "#0a0f1a";
+            }
+            toast.innerText = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                if(toast && toast.remove) toast.remove();
+            }, 4500);
+        }
+        
+        // Fungsi utama untuk memutar lagu (dengan handling error)
+        function playGoldenBrown() {
+            if (autoplaySuccess && isPlaying) return;
+            
+            audio.play().then(() => {
+                isPlaying = true;
+                autoplaySuccess = true;
+                console.log("✅ Golden Brown sedang diputar secara otomatis");
+                showToast("🎸 Golden Brown ~ music is now playing");
+                
+                // Jika sebelumnya ada listener interaksi, hapus agar tidak double play
+                if (interactionListenerActive) {
+                    document.removeEventListener('click', startMusicOnInteraction);
+                    document.removeEventListener('touchstart', startMusicOnInteraction);
+                    interactionListenerActive = false;
+                }
+            }).catch(err => {
+                console.log("Autoplay diblokir browser:", err);
+                // Browser memblokir autoplay, butuh interaksi pengguna dulu
+                if (!interactionListenerActive) {
+                    showToast("🎧 Klik di mana saja untuk memutar Golden Brown", true);
+                    // Tambahkan event listener global sekali saja
+                    const startMusicOnInteraction = function() {
+                        if (!autoplaySuccess) {
+                            audio.play().then(() => {
+                                isPlaying = true;
+                                autoplaySuccess = true;
+                                showToast("🎵 Selamat datang! Golden Brown mulai dimainkan");
+                                console.log("Musik mulai setelah interaksi");
+                            }).catch(e => {
+                                console.log("Gagal juga setelah interaksi:", e);
+                                showToast("⚠️ Gagal memutar musik. Coba refresh halaman.", true);
+                            });
+                        }
+                        // Hapus listener setelah berhasil/gagal agar tidak mengganggu
+                        document.removeEventListener('click', startMusicOnInteraction);
+                        document.removeEventListener('touchstart', startMusicOnInteraction);
+                        interactionListenerActive = false;
+                    };
+                    document.addEventListener('click', startMusicOnInteraction);
+                    document.addEventListener('touchstart', startMusicOnInteraction);
+                    interactionListenerActive = true;
+                }
+            });
+        }
+        
+        // Coba autoplay saat halaman benar-benar selesai dimuat
+        window.addEventListener('load', () => {
+            // Delay sedikit memastikan DOM stabil
+            setTimeout(() => {
+                playGoldenBrown();
+            }, 100);
+        });
+        
+        // Opsi tambahan: Jika halaman sudah dimuat tetapi pengguna tidak memberikan interaksi,
+        // tidak apa-apa, nanti saat klik pertama lagu akan menyala (berdasarkan event listener di atas)
+        // Ini memenuhi keinginan "literly otomatis ngeplay" meskipun harus ada interaksi jika diblokir browser.
+        // Tapi karena browser modern wajib user gesture, inilah solusi terbaik.
+        
+        // Untuk meningkatkan pengalaman, jika pengguna sudah pernah interaksi sebelumnya (misal membuka tab baru)
+        // Kita coba juga play saat visibility change? Tidak perlu.
+        
+        // Juga tangani kasus saat audio error (misal network)
+        audio.addEventListener('error', (e) => {
+            console.error("Error loading audio:", e);
+            showToast("⚠️ Gagal memuat lagu, periksa koneksi internet.", true);
+        });
+        
+        // Pastikan jika audio tiba-tiba pause karena alasan lain, kita tidak usah ganggu (tapi user tidak punya kontrol, jadi aman)
+        // Agar tetap loop dengan baik, sudah di-set loop=true
+        
+        // COMING SOON alert untuk tombol 4 & 5
+        const coming1 = document.getElementById('comingSoonBtn1');
+        const coming2 = document.getElementById('comingSoonBtn2');
+        
+        function comingAlert() {
+            alert("✨ Fitur COMING SOON! ✨\nTerima kasih sudah berkunjung ke SemzLink. Segera hadir dengan fitur keren!");
+        }
+        
+        coming1.addEventListener('click', comingAlert);
+        coming2.addEventListener('click', comingAlert);
+        
+        // Menampilkan pesan sambutan di console
+        console.log("SemzLink siap | Golden Brown akan otomatis berputar (autoplay aktif)");
+    })();
+</script>
+</body>
+</html>
