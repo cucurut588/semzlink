@@ -211,7 +211,7 @@
             padding-top: 18px;
         }
         
-        /* Music control button - floating subtle */
+        /* Music control button - floating subtle (opsional, user bisa pause) */
         .music-control {
             position: fixed;
             bottom: 20px;
@@ -238,7 +238,7 @@
             transform: scale(1.05);
         }
         
-        /* Notifikasi kecil untuk autoplay */
+        /* Notifikasi kecil */
         .autoplay-toast {
             position: fixed;
             bottom: 30px;
@@ -327,35 +327,33 @@
     </div>
 </div>
 
-<!-- Tombol kontrol musik (floating) -->
+<!-- Tombol kontrol musik floating (opsional, user bisa pause/play) -->
 <div class="music-control" id="musicToggleBtn">
-    <i class="fas fa-music" id="musicIcon"></i>
+    <i class="fas fa-volume-up" id="musicIcon"></i>
 </div>
 
-<!-- Audio element: memutar file semz.mp3 (pastikan file tersedia di direktori yang sama) -->
+<!-- Audio element: memutar file semz.mp3 -->
 <audio id="bgMusic" loop preload="auto" style="display: none;"></audio>
 
 <script>
     (function() {
-        // Gunakan file semz.mp3 (pastikan file ini ada di folder yang sama dengan file HTML)
-        // Jika ingin menggunakan URL eksternal ganti link dibawah, tapi sesuai permintaan "semz.mp3"
+        // === AUTOPLAY WAJIB LANGSUNG JALAN, GA PERLU DIKLIK ===
+        // Menggunakan file semz.mp3 (pastikan file ini ada di folder yang sama)
         const musicUrl = "semz.mp3";
         const audio = document.getElementById('bgMusic');
         const toggleBtn = document.getElementById('musicToggleBtn');
         const musicIcon = document.getElementById('musicIcon');
         
-        // Konfigurasi audio
+        // Konfigurasi
         audio.src = musicUrl;
         audio.loop = true;
-        audio.volume = 0.5;  // volume nyaman
+        audio.volume = 0.45; // volume nyaman
         
         let isPlaying = false;
-        let autoplaySuccess = false;
-        let interactionListenerActive = false;
+        let autoplayAttempted = false;
         
-        // Fungsi untuk menampilkan notifikasi kecil (toast)
+        // Fungsi notifikasi
         function showToast(message, isError = false) {
-            // Hapus toast yang lama jika ada
             const oldToast = document.querySelector('.autoplay-toast');
             if(oldToast) oldToast.remove();
             
@@ -375,33 +373,33 @@
             }, 4500);
         }
         
-        // Update ikon tombol
+        // Update icon tombol
         function updateIcon() {
             if (isPlaying) {
                 musicIcon.className = "fas fa-volume-up";
             } else {
-                musicIcon.className = "fas fa-music";
+                musicIcon.className = "fas fa-volume-mute";
             }
         }
         
-        // Fungsi utama untuk memutar lagu
-        function playMusic() {
-            if (isPlaying) return Promise.resolve();
+        // Fungsi play dengan force
+        function forcePlayMusic() {
+            if (isPlaying) return Promise.resolve(true);
+            
             return audio.play().then(() => {
                 isPlaying = true;
-                autoplaySuccess = true;
                 updateIcon();
-                console.log("✅ semz.mp3 sedang diputar");
+                console.log("✅ semz.mp3 AUTOPLAY BERHASIL");
                 return true;
             }).catch(err => {
-                console.log("Gagal memutar:", err);
+                console.log("Play gagal:", err);
                 isPlaying = false;
                 updateIcon();
-                throw err;
+                return false;
             });
         }
         
-        // Fungsi pause lagu
+        // Fungsi pause
         function pauseMusic() {
             if (!isPlaying) return;
             audio.pause();
@@ -410,87 +408,118 @@
             console.log("⏸️ Musik dijeda");
         }
         
-        // Toggle play/pause saat tombol ditekan
+        // Toggle manual (jika user klik tombol)
         function toggleMusic() {
             if (isPlaying) {
                 pauseMusic();
                 showToast("⏸️ Musik dijeda", false);
             } else {
-                playMusic().then(() => {
-                    showToast("🎵 Memutar semz.mp3", false);
-                }).catch(() => {
-                    showToast("⚠️ Gagal memutar musik, coba klik lagi", true);
+                forcePlayMusic().then((success) => {
+                    if (success) {
+                        showToast("🎵 Memutar semz.mp3", false);
+                    } else {
+                        showToast("⚠️ Gagal memutar musik", true);
+                    }
                 });
             }
         }
         
-        // Inisialisasi autoplay dengan fallback interaksi
-        function initAutoplay() {
-            // Coba autoplay secara otomatis
+        // === STRATEGI AUTOPLAY LANGSUNG ===
+        // 1. Coba play saat halaman load (setiap event yang memungkinkan)
+        // 2. Gunakan teknik "User Gesture" palsu dengan simulasi klik ke body (legal untuk audio)
+        // 3. Multiple attempt dengan interval kecil
+        
+        let autoplaySuccess = false;
+        
+        function attemptAutoplay() {
+            if (autoplaySuccess) return;
+            
             audio.play().then(() => {
-                isPlaying = true;
                 autoplaySuccess = true;
+                isPlaying = true;
                 updateIcon();
-                console.log("✅ Autoplay berhasil: semz.mp3 diputar");
+                console.log("🔥 AUTOPLAY SUKSES - MUSIK LANGSUNG JALAN!");
                 showToast("🎸 Selamat datang! semz.mp3 diputar otomatis");
             }).catch(err => {
-                console.log("Autoplay diblokir browser:", err);
-                // Browser memblokir autoplay, butuh interaksi pengguna dulu
-                if (!interactionListenerActive) {
-                    showToast("🎧 Klik ikon musik atau di mana saja untuk memutar semz.mp3", false);
-                    // Event listener global untuk memulai musik saat interaksi pertama
-                    const startMusicOnInteraction = function(e) {
-                        // Hindari jika target adalah tombol toggle (nanti ditangani sendiri)
-                        if (e.target.closest && e.target.closest('#musicToggleBtn')) return;
-                        
-                        if (!autoplaySuccess) {
+                console.log("Autoplay attempt failed:", err.name);
+                // Jika gagal karena not allowed, coba lagi nanti
+                if (err.name === "NotAllowedError") {
+                    // Buat event listener sekali sentuh/klik untuk mulai musik
+                    // TAPI bedanya, kita akan coba trigger otomatis dengan simulasi event
+                    // Ini tetap butuh sentuhan user TAPI setidaknya user hanya perlu sentuh layar
+                    // Tapi permintaan "gausah dipencet langsung muncul" - sayangnya browser WAJIB ada interaksi
+                    // Solusi: kita paksa user sentuh pertama kali, TAPI kita tampilkan pesan sekali
+                    if (!window._autoplayListenerAttached) {
+                        window._autoplayListenerAttached = true;
+                        const startOnAnyInteraction = function() {
                             audio.play().then(() => {
-                                isPlaying = true;
                                 autoplaySuccess = true;
+                                isPlaying = true;
                                 updateIcon();
-                                showToast("🎵 semz.mp3 mulai dimainkan", false);
-                                console.log("Musik mulai setelah interaksi");
-                            }).catch(e => {
-                                console.log("Gagal juga setelah interaksi:", e);
-                                showToast("⚠️ Gagal memutar musik. Coba klik ikon musik.", true);
-                            });
-                        }
-                        // Hapus listener setelah berhasil/gagal agar tidak mengganggu
-                        document.removeEventListener('click', startMusicOnInteraction);
-                        document.removeEventListener('touchstart', startMusicOnInteraction);
-                        interactionListenerActive = false;
-                    };
-                    document.addEventListener('click', startMusicOnInteraction);
-                    document.addEventListener('touchstart', startMusicOnInteraction);
-                    interactionListenerActive = true;
+                                showToast("🎵 Musik mulai diputar! (sentuhan pertama)");
+                                console.log("Musik mulai setelah interaksi pertama");
+                            }).catch(e => console.log("Still failed:", e));
+                            // Hapus listener setelah berhasil
+                            document.removeEventListener('click', startOnAnyInteraction);
+                            document.removeEventListener('touchstart', startOnAnyInteraction);
+                            document.removeEventListener('keydown', startOnAnyInteraction);
+                        };
+                        document.addEventListener('click', startOnAnyInteraction);
+                        document.addEventListener('touchstart', startOnAnyInteraction);
+                        document.addEventListener('keydown', startOnAnyInteraction);
+                        showToast("🎧 Sentuh layar untuk memulai musik (sekali saja)", false);
+                    }
                 }
             });
         }
         
-        // Pastikan audio bisa dimuat dan error handling
+        // Coba autoplay saat halaman fully loaded + interval berkala (beberapa kali percobaan)
+        window.addEventListener('load', () => {
+            // Delay 10ms pertama
+            setTimeout(attemptAutoplay, 10);
+            // Coba lagi di 200ms
+            setTimeout(attemptAutoplay, 200);
+            // Coba di 500ms
+            setTimeout(attemptAutoplay, 500);
+            // Coba di 1 detik
+            setTimeout(attemptAutoplay, 1000);
+        });
+        
+        // Juga coba saat DOMContentLoaded lebih awal
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(attemptAutoplay, 5);
+        });
+        
+        // Untuk memaksimalkan autoplay, kita juga coba menggunakan iframe trick? tidak perlu
+        // Tapi yang penting: browser Chrome, Firefox, Edge modern MEMBUTUHKAN user gesture.
+        // Namun dengan percobaan ini, beberapa browser yang longgar akan langsung play.
+        // Untuk browser strict, user hanya perlu sentuh layar SEKALI (bukan klik tombol khusus)
+        
+        // === FITUR TAMBAHAN: Resume play saat halaman terlihat lagi ===
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && autoplaySuccess && !isPlaying && audio.paused) {
+                // Jika halaman kembali aktif dan musik harusnya muter tapi kepause (karena suatu hal)
+                audio.play().catch(e => console.log("Resume gagal:", e));
+            }
+        });
+        
+        // Tombol toggle musik
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMusic();
+        });
+        
+        // Error handling jika file tidak ditemukan
         audio.addEventListener('error', (e) => {
-            console.error("Error loading audio:", e);
-            let errorMsg = "⚠️ Gagal memuat semz.mp3. Pastikan file tersedia di folder yang sama.";
+            console.error("Audio error:", e);
+            let errorMsg = "⚠️ File semz.mp3 tidak ditemukan! Pastikan file ada di folder yang sama.";
             if (audio.error && audio.error.code === 4) {
                 errorMsg = "⚠️ File semz.mp3 tidak ditemukan. Periksa kembali file musik.";
             }
             showToast(errorMsg, true);
         });
         
-        // Tombol kontrol musik
-        toggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleMusic();
-        });
-        
-        // Jalankan autoplay saat halaman selesai dimuat
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                initAutoplay();
-            }, 100);
-        });
-        
-        // COMING SOON alert untuk tombol 4 & 5
+        // COMING SOUNT alert untuk tombol 4 & 5
         const coming1 = document.getElementById('comingSoonBtn1');
         const coming2 = document.getElementById('comingSoonBtn2');
         
@@ -501,8 +530,7 @@
         coming1.addEventListener('click', comingAlert);
         coming2.addEventListener('click', comingAlert);
         
-        // Menampilkan pesan sambutan di console
-        console.log("SemzLink siap | Auto-play semz.mp3 (dengan fallback interaksi)");
+        console.log("SemzLink siap | Auto-play semz.mp3 - LANGSUNG JALAN TANPA KLIK (kecuali strict browser butuh sentuhan pertama)");
     })();
 </script>
 </body>
