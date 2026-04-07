@@ -210,9 +210,35 @@
             border-top: 1px dashed #2ecc7144;
             padding-top: 18px;
         }
-
-        /* Tidak ada music player widget lagi, karena tombol play dihilangkan */
-        /* Notifikasi kecil untuk autoplay (jika perlu) */
+        
+        /* Music control button - floating subtle */
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+            font-size: 1.3rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .music-control:hover {
+            background: #2ecc71;
+            color: #0a0c12;
+            transform: scale(1.05);
+        }
+        
+        /* Notifikasi kecil untuk autoplay */
         .autoplay-toast {
             position: fixed;
             bottom: 30px;
@@ -241,6 +267,7 @@
             .link-container { padding: 1.5rem 1.2rem; }
             .glow-text { font-size: 2rem; }
             .btn-link { padding: 12px 16px; font-size: 1rem; }
+            .music-control { width: 38px; height: 38px; font-size: 1rem; bottom: 15px; right: 15px; }
         }
     </style>
 </head>
@@ -300,20 +327,27 @@
     </div>
 </div>
 
-<!-- Audio element: lagu Golden Brown, tanpa kontrol visual (tombol play dihilangkan) -->
+<!-- Tombol kontrol musik (floating) -->
+<div class="music-control" id="musicToggleBtn">
+    <i class="fas fa-music" id="musicIcon"></i>
+</div>
+
+<!-- Audio element: memutar file semz.mp3 (pastikan file tersedia di direktori yang sama) -->
 <audio id="bgMusic" loop preload="auto" style="display: none;"></audio>
 
 <script>
     (function() {
-        // URL lagu Golden Brown (versi instrumental bebas royalti dengan nuansa hangat)
-        // Menggunakan file MP3 dari Pixabay yang bebas digunakan, namun tetap ditulis "Golden Brown" di notifikasi
-        const musicUrl = "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808f0bf07.mp3?filename=lofi-study-112191.mp3";
+        // Gunakan file semz.mp3 (pastikan file ini ada di folder yang sama dengan file HTML)
+        // Jika ingin menggunakan URL eksternal ganti link dibawah, tapi sesuai permintaan "semz.mp3"
+        const musicUrl = "semz.mp3";
         const audio = document.getElementById('bgMusic');
+        const toggleBtn = document.getElementById('musicToggleBtn');
+        const musicIcon = document.getElementById('musicIcon');
         
         // Konfigurasi audio
         audio.src = musicUrl;
         audio.loop = true;
-        audio.volume = 0.55;  // volume nyaman
+        audio.volume = 0.5;  // volume nyaman
         
         let isPlaying = false;
         let autoplaySuccess = false;
@@ -341,38 +375,84 @@
             }, 4500);
         }
         
-        // Fungsi utama untuk memutar lagu (dengan handling error)
-        function playGoldenBrown() {
-            if (autoplaySuccess && isPlaying) return;
-            
+        // Update ikon tombol
+        function updateIcon() {
+            if (isPlaying) {
+                musicIcon.className = "fas fa-volume-up";
+            } else {
+                musicIcon.className = "fas fa-music";
+            }
+        }
+        
+        // Fungsi utama untuk memutar lagu
+        function playMusic() {
+            if (isPlaying) return Promise.resolve();
+            return audio.play().then(() => {
+                isPlaying = true;
+                autoplaySuccess = true;
+                updateIcon();
+                console.log("✅ semz.mp3 sedang diputar");
+                return true;
+            }).catch(err => {
+                console.log("Gagal memutar:", err);
+                isPlaying = false;
+                updateIcon();
+                throw err;
+            });
+        }
+        
+        // Fungsi pause lagu
+        function pauseMusic() {
+            if (!isPlaying) return;
+            audio.pause();
+            isPlaying = false;
+            updateIcon();
+            console.log("⏸️ Musik dijeda");
+        }
+        
+        // Toggle play/pause saat tombol ditekan
+        function toggleMusic() {
+            if (isPlaying) {
+                pauseMusic();
+                showToast("⏸️ Musik dijeda", false);
+            } else {
+                playMusic().then(() => {
+                    showToast("🎵 Memutar semz.mp3", false);
+                }).catch(() => {
+                    showToast("⚠️ Gagal memutar musik, coba klik lagi", true);
+                });
+            }
+        }
+        
+        // Inisialisasi autoplay dengan fallback interaksi
+        function initAutoplay() {
+            // Coba autoplay secara otomatis
             audio.play().then(() => {
                 isPlaying = true;
                 autoplaySuccess = true;
-                console.log("✅ Golden Brown sedang diputar secara otomatis");
-                showToast("🎸 Golden Brown ~ music is now playing");
-                
-                // Jika sebelumnya ada listener interaksi, hapus agar tidak double play
-                if (interactionListenerActive) {
-                    document.removeEventListener('click', startMusicOnInteraction);
-                    document.removeEventListener('touchstart', startMusicOnInteraction);
-                    interactionListenerActive = false;
-                }
+                updateIcon();
+                console.log("✅ Autoplay berhasil: semz.mp3 diputar");
+                showToast("🎸 Selamat datang! semz.mp3 diputar otomatis");
             }).catch(err => {
                 console.log("Autoplay diblokir browser:", err);
                 // Browser memblokir autoplay, butuh interaksi pengguna dulu
                 if (!interactionListenerActive) {
-                    showToast("🎧 Klik di mana saja untuk memutar Golden Brown", true);
-                    // Tambahkan event listener global sekali saja
-                    const startMusicOnInteraction = function() {
+                    showToast("🎧 Klik ikon musik atau di mana saja untuk memutar semz.mp3", false);
+                    // Event listener global untuk memulai musik saat interaksi pertama
+                    const startMusicOnInteraction = function(e) {
+                        // Hindari jika target adalah tombol toggle (nanti ditangani sendiri)
+                        if (e.target.closest && e.target.closest('#musicToggleBtn')) return;
+                        
                         if (!autoplaySuccess) {
                             audio.play().then(() => {
                                 isPlaying = true;
                                 autoplaySuccess = true;
-                                showToast("🎵 Selamat datang! Golden Brown mulai dimainkan");
+                                updateIcon();
+                                showToast("🎵 semz.mp3 mulai dimainkan", false);
                                 console.log("Musik mulai setelah interaksi");
                             }).catch(e => {
                                 console.log("Gagal juga setelah interaksi:", e);
-                                showToast("⚠️ Gagal memutar musik. Coba refresh halaman.", true);
+                                showToast("⚠️ Gagal memutar musik. Coba klik ikon musik.", true);
                             });
                         }
                         // Hapus listener setelah berhasil/gagal agar tidak mengganggu
@@ -387,30 +467,28 @@
             });
         }
         
-        // Coba autoplay saat halaman benar-benar selesai dimuat
-        window.addEventListener('load', () => {
-            // Delay sedikit memastikan DOM stabil
-            setTimeout(() => {
-                playGoldenBrown();
-            }, 100);
-        });
-        
-        // Opsi tambahan: Jika halaman sudah dimuat tetapi pengguna tidak memberikan interaksi,
-        // tidak apa-apa, nanti saat klik pertama lagu akan menyala (berdasarkan event listener di atas)
-        // Ini memenuhi keinginan "literly otomatis ngeplay" meskipun harus ada interaksi jika diblokir browser.
-        // Tapi karena browser modern wajib user gesture, inilah solusi terbaik.
-        
-        // Untuk meningkatkan pengalaman, jika pengguna sudah pernah interaksi sebelumnya (misal membuka tab baru)
-        // Kita coba juga play saat visibility change? Tidak perlu.
-        
-        // Juga tangani kasus saat audio error (misal network)
+        // Pastikan audio bisa dimuat dan error handling
         audio.addEventListener('error', (e) => {
             console.error("Error loading audio:", e);
-            showToast("⚠️ Gagal memuat lagu, periksa koneksi internet.", true);
+            let errorMsg = "⚠️ Gagal memuat semz.mp3. Pastikan file tersedia di folder yang sama.";
+            if (audio.error && audio.error.code === 4) {
+                errorMsg = "⚠️ File semz.mp3 tidak ditemukan. Periksa kembali file musik.";
+            }
+            showToast(errorMsg, true);
         });
         
-        // Pastikan jika audio tiba-tiba pause karena alasan lain, kita tidak usah ganggu (tapi user tidak punya kontrol, jadi aman)
-        // Agar tetap loop dengan baik, sudah di-set loop=true
+        // Tombol kontrol musik
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMusic();
+        });
+        
+        // Jalankan autoplay saat halaman selesai dimuat
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                initAutoplay();
+            }, 100);
+        });
         
         // COMING SOON alert untuk tombol 4 & 5
         const coming1 = document.getElementById('comingSoonBtn1');
@@ -424,7 +502,7 @@
         coming2.addEventListener('click', comingAlert);
         
         // Menampilkan pesan sambutan di console
-        console.log("SemzLink siap | Golden Brown akan otomatis berputar (autoplay aktif)");
+        console.log("SemzLink siap | Auto-play semz.mp3 (dengan fallback interaksi)");
     })();
 </script>
 </body>
