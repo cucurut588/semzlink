@@ -3,117 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Roblox Status Checker</title>
+<title>Roblox Status Tracker</title>
 <style>
-  :root {
-    --bg: #0e0e16;
-    --card: #1a1a2e;
-    --accent: #7f5af0;
-    --text: #fffffe;
-    --muted: #94a1b2;
-    --online: #2cb67d;
-    --offline: #ef4565;
-  }
+  :root { --bg: #0e0e16; --card: #1a1a2e; --accent: #7f5af0; --text: #fffffe; --muted: #94a1b2; --online: #2cb67d; --offline: #ef4565; }
     * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-  body {
-    margin: 0;
-    background: radial-gradient(1200px 600px at 80% -10%, #2a1b4d 0%, var(--bg) 50%);
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
-  }
-  .wrap {
-    width: 100%;
-    max-width: 520px;
-    background: rgba(26,26,46,0.6);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(127,90,240,0.2);
-    border-radius: 24px;
-    padding: 32px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-  }
-  h1 {
-    margin: 0 0 8px;
-    font-size: 24px;
-    font-weight: 700;
-  }
-  p.sub {
-    margin: 0 0 24px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-  .input-row {
-    display: flex;
-    gap: 10px;
-  }
-  input {
-    flex: 1;
-    background: var(--card);
-    border: 1px solid rgba(127,90,240,0.3);
-    border-radius: 12px;
-    padding: 14px 16px;
-    color: var(--text);
-    font-size: 15px;
-    outline: none;
-    transition: .2s;
-  }
-  input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(127,90,240,0.2);
-  }
-  button {
-    background: var(--accent);
-    border: 0;
-    border-radius: 12px;
-    padding: 14px 20px;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: .2s;
-  }
-  button:hover { filter: brightness(1.1); }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-
-  .card {
-    margin-top: 24px;
-    background: var(--card);
-    border-radius: 16px;
-    padding: 20px;
-    border: 1px solid rgba(255,255,255,0.05);
-    display: none;
-  }
-  .card.show { display: block; animation: fade .3s ease; }
-  @keyframes fade { from {opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;} }
-
-  .status-line {
-    font-size: 18px;
-    font-weight: 600;
-  }
-  .status-line.online { color: var(--online); }
-  .status-line.offline { color: var(--muted); }
-  
-  .game-info {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px dashed rgba(255,255,255,0.1);
-  }
-  .game-title {
-    font-size: 16px;
-    font-weight: 700;
-  }
-  .game-place {
-    color: var(--muted);
-    font-size: 14px;
-  }
-  .error { color: var(--offline); margin-top: 12px; font-size: 14px; }
-  .loader {
-    width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.2);
-    border-top-color: white; border-radius: 50%;
-    animation: spin .8s linear infinite; display: inline-block; vertical-align: middle;
-  }
+  body { margin: 0; background: radial-gradient(1200px 600px at 80% -10%, #2a1b4d 0%, var(--bg) 50%); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+ .wrap { width: 100%; max-width: 520px; background: rgba(26,26,46,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(127,90,240,0.2); border-radius: 24px; padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+  h1 { margin: 0 0 8px; font-size: 24px; font-weight: 700; }
+  p.sub { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
+ .input-row { display: flex; gap: 10px; }
+  input { flex: 1; background: var(--card); border: 1px solid rgba(127,90,240,0.3); border-radius: 12px; padding: 14px 16px; color: var(--text); font-size: 15px; outline: none; }
+  button { background: var(--accent); border: 0; border-radius: 12px; padding: 14px 20px; color: white; font-weight: 600; cursor: pointer; }
+ .card { margin-top: 24px; background: var(--card); border-radius: 16px; padding: 20px; display: none; }
+ .card.show { display: block; }
+ .status-line.online { color: var(--online); }
+ .status-line.offline { color: var(--muted); }
+ .error { color: var(--offline); margin-top: 12px; }
+ .loader { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.2); border-top-color: white; border-radius: 50%; animation: spin.8s linear infinite; display: inline-block; }
   @keyframes spin { to {transform: rotate(360deg);} }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -122,92 +28,60 @@
   <div class="wrap">
     <h1>Roblox Status Tracker</h1>
     <p class="sub">Cek apakah player lagi main game apa. Gak perlu login.</p>
-    
     <div class="input-row">
-      <input id="username" type="text" placeholder="Contoh: karyawansemz" spellcheck="false">
+      <input id="username" type="text" placeholder="Contoh: karyawansemz">
       <button id="checkBtn">Cek</button>
     </div>
-
     <div id="resultCard" class="card">
       <div id="statusLine" class="status-line"></div>
-      <div id="gameInfo" class="game-info" style="display:none;">
-        <div class="game-title" id="gameName"></div>
-        <div class="game-place" id="placeName"></div>
-      </div>
       <div id="error" class="error"></div>
     </div>
   </div>
 
 <script>
+const PROXY = 'https://api.allorigins.win/raw?url='; // Proxy anti CORS
 const btn = document.getElementById('checkBtn');
 const input = document.getElementById('username');
 const card = document.getElementById('resultCard');
 const statusLine = document.getElementById('statusLine');
-const gameInfo = document.getElementById('gameInfo');
-const gameName = document.getElementById('gameName');
-const placeName = document.getElementById('placeName');
 const errorBox = document.getElementById('error');
-
-async function fetchJson(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Gagal fetch data');
-  return res.json();
-}
 
 btn.onclick = async () => {
   const username = input.value.replace('@','').trim();
   if(!username) return alert('Isi username dulu jirr');
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="loader"></span>';
-  card.classList.add('show');
-  errorBox.textContent = '';
-  gameInfo.style.display = 'none';
-  statusLine.textContent = 'Mengecek...';
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
+  card.classList.add('show'); errorBox.textContent = ''; statusLine.textContent = 'Mengecek...';
 
   try {
-    // 1. Dapetin UserId dari username
-    const userRes = await fetchJson(`https://users.roblox.com/v1/users/search?keyword=${username}&limit=1`);
+    const userRes = await fetch(PROXY + encodeURIComponent(`https://users.roblox.com/v1/users/search?keyword=${username}&limit=1`)).then(r=>r.json());
     if(!userRes.data.length) throw new Error('Username tidak ditemukan');
     const userId = userRes.data[0].id;
     const displayName = userRes.data[0].name;
 
-    // 2. Cek presence/status online
-    const presenceRes = await fetchJson(`https://presence.roblox.com/v1/presence/users`, {
+    const presenceRes = await fetch(PROXY + encodeURIComponent(`https://presence.roblox.com/v1/presence/users`), {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({userIds:[userId]})
-    });
-    
-    const presence = presenceRes.userPresences[0];
-    const userPresenceType = presence.userPresenceType; // 0=Offline, 1=Online, 2=InGame, 3=InStudio
+    }).then(r=>r.json());
 
-    if(userPresenceType === 2 && presence.lastLocation) {
-      // In Game
+    const presence = presenceRes.userPresences[0];
+    if(presence.userPresenceType === 2 && presence.lastLocation) {
       statusLine.className = 'status-line online';
       statusLine.textContent = `*@${displayName} sedang main ${presence.lastLocation}*`;
-      gameName.textContent = presence.placeId ? `Game ID: ${presence.placeId}` : presence.lastLocation;
-      placeName.textContent = presence.rootPlaceId ? `Place ID: ${presence.rootPlaceId}` : '';
-      gameInfo.style.display = 'block';
-    } else if(userPresenceType === 1) {
+    } else if(presence.userPresenceType === 1) {
       statusLine.className = 'status-line';
       statusLine.textContent = `*@${displayName} sedang online di Roblox*`;
     } else {
       statusLine.className = 'status-line offline';
       statusLine.textContent = `*@${displayName} sedang offline*`;
     }
-
   } catch(e) {
-    errorBox.textContent = e.message;
+    errorBox.textContent = 'Error: ' + e.message + '. Coba refresh atau pake Netlify aja biar stabil.';
     statusLine.textContent = '';
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Cek';
+    btn.disabled = false; btn.textContent = 'Cek';
   }
 }
-
-// Enter to search
-input.addEventListener('keypress', e => { if(e.key==='Enter') btn.click(); });
 </script>
 </body>
 </html>
