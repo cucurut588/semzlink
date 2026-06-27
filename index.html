@@ -1,537 +1,213 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SemzLink | Programmer's Hub</title>
-    <!-- Font Awesome 6 (Icons) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Fonts: Poppins & Fira Code -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roblox Status Checker</title>
+<style>
+  :root {
+    --bg: #0e0e16;
+    --card: #1a1a2e;
+    --accent: #7f5af0;
+    --text: #fffffe;
+    --muted: #94a1b2;
+    --online: #2cb67d;
+    --offline: #ef4565;
+  }
+    * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 80% -10%, #2a1b4d 0%, var(--bg) 50%);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 520px;
+    background: rgba(26,26,46,0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(127,90,240,0.2);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  p.sub {
+    margin: 0 0 24px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .input-row {
+    display: flex;
+    gap: 10px;
+  }
+  input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid rgba(127,90,240,0.3);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    transition: .2s;
+  }
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(127,90,240,0.2);
+  }
+  button {
+    background: var(--accent);
+    border: 0;
+    border-radius: 12px;
+    padding: 14px 20px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s;
+  }
+  button:hover { filter: brightness(1.1); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
 
-        body {
-            min-height: 100vh;
-            background: #0a0c12;
-            font-family: 'Poppins', 'Fira Code', monospace;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 2rem 1rem;
-        }
+  .card {
+    margin-top: 24px;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: none;
+  }
+  .card.show { display: block; animation: fade .3s ease; }
+  @keyframes fade { from {opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;} }
 
-        /* Background coding theme - matrix/terminal style dengan animasi grid */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(10, 20, 30, 0.85), rgba(5, 8, 15, 0.92)),
-                repeating-linear-gradient(0deg, rgba(0, 255, 170, 0.08) 0px, rgba(0, 255, 170, 0.08) 1px, transparent 1px, transparent 2px),
-                repeating-linear-gradient(90deg, rgba(0, 255, 170, 0.08) 0px, rgba(0, 255, 170, 0.08) 1px, transparent 1px, transparent 2px);
-            background-size: 100% 100%, 30px 30px, 30px 30px;
-            z-index: -2;
-        }
-
-        /* Efek kode berjalan */
-        body::after {
-            content: "&lt;html&gt; &lt;body&gt; { code: 'semz' }  &lt;/div&gt; &lt;?php echo 'linktree'; ?&gt; // SEMZLINK // async function init() { }";
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            font-size: 11px;
-            font-family: 'Fira Code', monospace;
-            color: #2ecc71;
-            opacity: 0.3;
-            white-space: pre;
-            pointer-events: none;
-            z-index: -1;
-            animation: fadeCode 8s infinite alternate;
-        }
-
-        @keyframes fadeCode {
-            0% { opacity: 0.1; transform: translateX(0);}
-            100% { opacity: 0.5; transform: translateX(-8px);}
-        }
-
-        /* Container utama */
-        .link-container {
-            max-width: 580px;
-            width: 100%;
-            margin: 30px auto;
-            background: rgba(12, 18, 28, 0.65);
-            backdrop-filter: blur(12px);
-            border-radius: 48px;
-            padding: 2rem 1.8rem 2.5rem;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.5), 0 0 0 1px rgba(0, 255, 170, 0.2);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0, 255, 170, 0.25);
-        }
-
-        /* Logo area */
-        .logo-area {
-            text-align: center;
-            margin-bottom: 1.8rem;
-        }
-        .logo-img {
-            width: 110px;
-            height: 110px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid #0ff9a6;
-            box-shadow: 0 0 15px #0ff9a688;
-            transition: transform 0.3s ease;
-            background: #111;
-        }
-        .logo-img:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 22px #0ff9a6;
-        }
-
-        /* Nama web dengan animasi */
-        .webname {
-            text-align: center;
-            margin-top: 16px;
-            margin-bottom: 28px;
-        }
-        .glow-text {
-            font-size: 2.7rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #E0EAFc, #a3f5d0, #2ecc71);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: shine 3s linear infinite, floatText 2s ease-in-out infinite;
-            display: inline-block;
-            letter-spacing: 2px;
-            text-shadow: 0 0 8px #0aff9a55;
-        }
-        @keyframes shine {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        @keyframes floatText {
-            0% { transform: translateY(0px);}
-            50% { transform: translateY(-4px);}
-            100% { transform: translateY(0px);}
-        }
-        .sub {
-            font-size: 0.85rem;
-            color: #bbf0e1;
-            font-family: 'Fira Code', monospace;
-            letter-spacing: 1px;
-            margin-top: 5px;
-            opacity: 0.8;
-        }
-
-        /* 5 tombol persegi panjang */
-        .buttons-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            margin-top: 10px;
-        }
-        .btn-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            background: rgba(10, 20, 30, 0.75);
-            backdrop-filter: blur(4px);
-            border: 1.5px solid rgba(46, 204, 113, 0.5);
-            border-radius: 60px;
-            padding: 16px 20px;
-            font-size: 1.25rem;
-            font-weight: 600;
-            font-family: 'Poppins', sans-serif;
-            text-decoration: none;
-            color: #eef5ff;
-            transition: all 0.25s ease;
-            cursor: pointer;
-            letter-spacing: 1px;
-            box-shadow: 0 5px 12px rgba(0,0,0,0.3);
-        }
-        .btn-link i {
-            font-size: 1.7rem;
-            width: 32px;
-            text-align: center;
-            color: #2ecc71;
-            transition: 0.2s;
-        }
-        .btn-link span {
-            flex: 1;
-            text-align: center;
-        }
-        .btn-link:hover {
-            background: #0b2a1fcc;
-            border-color: #2ecc71;
-            transform: translateY(-3px);
-            box-shadow: 0 12px 22px rgba(0, 255, 170, 0.3);
-            color: white;
-        }
-        .btn-link:hover i {
-            transform: scale(1.1);
-            color: #a0ffcf;
-        }
-        /* untuk tombol coming soon efek beda */
-        .btn-coming {
-            background: rgba(30, 30, 45, 0.75);
-            border-color: #ffae42aa;
-            cursor: pointer;
-            color: #f5e6d3;
-        }
-        .btn-coming i {
-            color: #ffaa44;
-        }
-        .btn-coming:hover {
-            transform: translateY(0px);
-            background: rgba(50, 40, 30, 0.85);
-            box-shadow: 0 0 12px #ffae4277;
-        }
-
-        /* footer note */
-        .footer-note {
-            text-align: center;
-            margin-top: 32px;
-            font-size: 0.7rem;
-            font-family: monospace;
-            color: #6c8e7c;
-            border-top: 1px dashed #2ecc7144;
-            padding-top: 18px;
-        }
-        
-        /* Music control button - floating subtle (opsional, user bisa pause) */
-        .music-control {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 100;
-            border: 1px solid #2ecc71;
-            color: #2ecc71;
-            font-size: 1.3rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-        .music-control:hover {
-            background: #2ecc71;
-            color: #0a0c12;
-            transform: scale(1.05);
-        }
-        
-        /* Notifikasi kecil */
-        .autoplay-toast {
-            position: fixed;
-            bottom: 30px;
-            left: 20px;
-            background: #2ecc71dd;
-            color: #0a0f1a;
-            padding: 8px 18px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: bold;
-            font-family: monospace;
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            animation: fadeOut 4s forwards;
-            pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            border-left: 4px solid #0a0f1a;
-        }
-        @keyframes fadeOut {
-            0% { opacity: 1; transform: translateY(0);}
-            70% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; display: none;}
-        }
-
-        @media (max-width: 500px) {
-            .link-container { padding: 1.5rem 1.2rem; }
-            .glow-text { font-size: 2rem; }
-            .btn-link { padding: 12px 16px; font-size: 1rem; }
-            .music-control { width: 38px; height: 38px; font-size: 1rem; bottom: 15px; right: 15px; }
-        }
-    </style>
+  .status-line {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .status-line.online { color: var(--online); }
+  .status-line.offline { color: var(--muted); }
+  
+  .game-info {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+  }
+  .game-title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .game-place {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .error { color: var(--offline); margin-top: 12px; font-size: 14px; }
+  .loader {
+    width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.2);
+    border-top-color: white; border-radius: 50%;
+    animation: spin .8s linear infinite; display: inline-block; vertical-align: middle;
+  }
+  @keyframes spin { to {transform: rotate(360deg);} }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-<div class="link-container">
-    <!-- Logo diatas tombol -->
-    <div class="logo-area">
-        <img class="logo-img" src="https://files.catbox.moe/83dyq1.jpg" alt="SemzLink Logo" onerror="this.src='https://via.placeholder.com/110?text=Semz'">
-    </div>
+  <div class="wrap">
+    <h1>Roblox Status Tracker</h1>
+    <p class="sub">Cek apakah player lagi main game apa. Gak perlu login.</p>
     
-    <!-- Nama Web dengan animasi -->
-    <div class="webname">
-        <div class="glow-text">SEMZLINK</div>
-        <div class="sub">// your digital gateway //</div>
+    <div class="input-row">
+      <input id="username" type="text" placeholder="Contoh: karyawansemz" spellcheck="false">
+      <button id="checkBtn">Cek</button>
     </div>
 
-    <!-- 5 Tombol persegi panjang berjajar (secara vertikal tengah) -->
-    <div class="buttons-grid">
-        <!-- TOMBOL 1 : GITHUB -->
-        <a href="https://github.com/cucurut588" target="_blank" rel="noopener noreferrer" class="btn-link">
-            <i class="fab fa-github"></i>
-            <span>GITHUB</span>
-            <i class="fas fa-external-link-alt" style="font-size: 0.9rem; opacity: 0.7;"></i>
-        </a>
-
-        <!-- TOMBOL 2 : SOCIALBUZZ -->
-        <a href="https://sociabuzz.com/semz332/tribe" target="_blank" rel="noopener noreferrer" class="btn-link">
-            <i class="fas fa-chart-line"></i>
-            <span>SOCIALBUZZ</span>
-            <i class="fas fa-external-link-alt" style="font-size: 0.9rem; opacity: 0.7;"></i>
-        </a>
-
-        <!-- TOMBOL 3 : SALURAN WHATSAPP -->
-        <a href="https://whatsapp.com/channel/0029Vb7w2oe4Y9lpZ7cnKe04" target="_blank" rel="noopener noreferrer" class="btn-link">
-            <i class="fab fa-whatsapp"></i>
-            <span>SALURAN WHATSAPP</span>
-            <i class="fas fa-external-link-alt" style="font-size: 0.9rem; opacity: 0.7;"></i>
-        </a>
-
-        <!-- TOMBOL 4 : COMING SOON -->
-        <div class="btn-link btn-coming" id="comingSoonBtn1">
-            <i class="fas fa-hourglass-half"></i>
-            <span>COMING SOON</span>
-            <i class="fas fa-clock"></i>
-        </div>
-
-        <!-- TOMBOL 5 : COMING SOON -->
-        <div class="btn-link btn-coming" id="comingSoonBtn2">
-            <i class="fas fa-code-branch"></i>
-            <span>COMING SOON</span>
-            <i class="fas fa-microchip"></i>
-        </div>
+    <div id="resultCard" class="card">
+      <div id="statusLine" class="status-line"></div>
+      <div id="gameInfo" class="game-info" style="display:none;">
+        <div class="game-title" id="gameName"></div>
+        <div class="game-place" id="placeName"></div>
+      </div>
+      <div id="error" class="error"></div>
     </div>
-    <div class="footer-note">
-        ⚡ semzlink · programmatic universe ⚡
-    </div>
-</div>
-
-<!-- Tombol kontrol musik floating (opsional, user bisa pause/play) -->
-<div class="music-control" id="musicToggleBtn">
-    <i class="fas fa-volume-up" id="musicIcon"></i>
-</div>
-
-<!-- Audio element: memutar file semz.mp3 -->
-<audio id="bgMusic" loop preload="auto" style="display: none;"></audio>
+  </div>
 
 <script>
-    (function() {
-        // === AUTOPLAY WAJIB LANGSUNG JALAN, GA PERLU DIKLIK ===
-        // Menggunakan file semz.mp3 (pastikan file ini ada di folder yang sama)
-        const musicUrl = "semz.mp3";
-        const audio = document.getElementById('bgMusic');
-        const toggleBtn = document.getElementById('musicToggleBtn');
-        const musicIcon = document.getElementById('musicIcon');
-        
-        // Konfigurasi
-        audio.src = musicUrl;
-        audio.loop = true;
-        audio.volume = 0.45; // volume nyaman
-        
-        let isPlaying = false;
-        let autoplayAttempted = false;
-        
-        // Fungsi notifikasi
-        function showToast(message, isError = false) {
-            const oldToast = document.querySelector('.autoplay-toast');
-            if(oldToast) oldToast.remove();
-            
-            let toast = document.createElement('div');
-            toast.className = 'autoplay-toast';
-            if(isError) {
-                toast.style.background = "#ffae42dd";
-                toast.style.color = "#1e2a1a";
-            } else {
-                toast.style.background = "#2ecc71dd";
-                toast.style.color = "#0a0f1a";
-            }
-            toast.innerText = message;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                if(toast && toast.remove) toast.remove();
-            }, 4500);
-        }
-        
-        // Update icon tombol
-        function updateIcon() {
-            if (isPlaying) {
-                musicIcon.className = "fas fa-volume-up";
-            } else {
-                musicIcon.className = "fas fa-volume-mute";
-            }
-        }
-        
-        // Fungsi play dengan force
-        function forcePlayMusic() {
-            if (isPlaying) return Promise.resolve(true);
-            
-            return audio.play().then(() => {
-                isPlaying = true;
-                updateIcon();
-                console.log("✅ semz.mp3 AUTOPLAY BERHASIL");
-                return true;
-            }).catch(err => {
-                console.log("Play gagal:", err);
-                isPlaying = false;
-                updateIcon();
-                return false;
-            });
-        }
-        
-        // Fungsi pause
-        function pauseMusic() {
-            if (!isPlaying) return;
-            audio.pause();
-            isPlaying = false;
-            updateIcon();
-            console.log("⏸️ Musik dijeda");
-        }
-        
-        // Toggle manual (jika user klik tombol)
-        function toggleMusic() {
-            if (isPlaying) {
-                pauseMusic();
-                showToast("⏸️ Musik dijeda", false);
-            } else {
-                forcePlayMusic().then((success) => {
-                    if (success) {
-                        showToast("🎵 Memutar semz.mp3", false);
-                    } else {
-                        showToast("⚠️ Gagal memutar musik", true);
-                    }
-                });
-            }
-        }
-        
-        // === STRATEGI AUTOPLAY LANGSUNG ===
-        // 1. Coba play saat halaman load (setiap event yang memungkinkan)
-        // 2. Gunakan teknik "User Gesture" palsu dengan simulasi klik ke body (legal untuk audio)
-        // 3. Multiple attempt dengan interval kecil
-        
-        let autoplaySuccess = false;
-        
-        function attemptAutoplay() {
-            if (autoplaySuccess) return;
-            
-            audio.play().then(() => {
-                autoplaySuccess = true;
-                isPlaying = true;
-                updateIcon();
-                console.log("🔥 AUTOPLAY SUKSES - MUSIK LANGSUNG JALAN!");
-                showToast("🎸 Selamat datang! semz.mp3 diputar otomatis");
-            }).catch(err => {
-                console.log("Autoplay attempt failed:", err.name);
-                // Jika gagal karena not allowed, coba lagi nanti
-                if (err.name === "NotAllowedError") {
-                    // Buat event listener sekali sentuh/klik untuk mulai musik
-                    // TAPI bedanya, kita akan coba trigger otomatis dengan simulasi event
-                    // Ini tetap butuh sentuhan user TAPI setidaknya user hanya perlu sentuh layar
-                    // Tapi permintaan "gausah dipencet langsung muncul" - sayangnya browser WAJIB ada interaksi
-                    // Solusi: kita paksa user sentuh pertama kali, TAPI kita tampilkan pesan sekali
-                    if (!window._autoplayListenerAttached) {
-                        window._autoplayListenerAttached = true;
-                        const startOnAnyInteraction = function() {
-                            audio.play().then(() => {
-                                autoplaySuccess = true;
-                                isPlaying = true;
-                                updateIcon();
-                                showToast("🎵 Musik mulai diputar! (sentuhan pertama)");
-                                console.log("Musik mulai setelah interaksi pertama");
-                            }).catch(e => console.log("Still failed:", e));
-                            // Hapus listener setelah berhasil
-                            document.removeEventListener('click', startOnAnyInteraction);
-                            document.removeEventListener('touchstart', startOnAnyInteraction);
-                            document.removeEventListener('keydown', startOnAnyInteraction);
-                        };
-                        document.addEventListener('click', startOnAnyInteraction);
-                        document.addEventListener('touchstart', startOnAnyInteraction);
-                        document.addEventListener('keydown', startOnAnyInteraction);
-                        showToast("🎧 Sentuh layar untuk memulai musik (sekali saja)", false);
-                    }
-                }
-            });
-        }
-        
-        // Coba autoplay saat halaman fully loaded + interval berkala (beberapa kali percobaan)
-        window.addEventListener('load', () => {
-            // Delay 10ms pertama
-            setTimeout(attemptAutoplay, 10);
-            // Coba lagi di 200ms
-            setTimeout(attemptAutoplay, 200);
-            // Coba di 500ms
-            setTimeout(attemptAutoplay, 500);
-            // Coba di 1 detik
-            setTimeout(attemptAutoplay, 1000);
-        });
-        
-        // Juga coba saat DOMContentLoaded lebih awal
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(attemptAutoplay, 5);
-        });
-        
-        // Untuk memaksimalkan autoplay, kita juga coba menggunakan iframe trick? tidak perlu
-        // Tapi yang penting: browser Chrome, Firefox, Edge modern MEMBUTUHKAN user gesture.
-        // Namun dengan percobaan ini, beberapa browser yang longgar akan langsung play.
-        // Untuk browser strict, user hanya perlu sentuh layar SEKALI (bukan klik tombol khusus)
-        
-        // === FITUR TAMBAHAN: Resume play saat halaman terlihat lagi ===
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && autoplaySuccess && !isPlaying && audio.paused) {
-                // Jika halaman kembali aktif dan musik harusnya muter tapi kepause (karena suatu hal)
-                audio.play().catch(e => console.log("Resume gagal:", e));
-            }
-        });
-        
-        // Tombol toggle musik
-        toggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleMusic();
-        });
-        
-        // Error handling jika file tidak ditemukan
-        audio.addEventListener('error', (e) => {
-            console.error("Audio error:", e);
-            let errorMsg = "⚠️ File semz.mp3 tidak ditemukan! Pastikan file ada di folder yang sama.";
-            if (audio.error && audio.error.code === 4) {
-                errorMsg = "⚠️ File semz.mp3 tidak ditemukan. Periksa kembali file musik.";
-            }
-            showToast(errorMsg, true);
-        });
-        
-        // COMING SOUNT alert untuk tombol 4 & 5
-        const coming1 = document.getElementById('comingSoonBtn1');
-        const coming2 = document.getElementById('comingSoonBtn2');
-        
-        function comingAlert() {
-            alert("✨ Fitur COMING SOON! ✨\nTerima kasih sudah berkunjung ke SemzLink. Segera hadir dengan fitur keren!");
-        }
-        
-        coming1.addEventListener('click', comingAlert);
-        coming2.addEventListener('click', comingAlert);
-        
-        console.log("SemzLink siap | Auto-play semz.mp3 - LANGSUNG JALAN TANPA KLIK (kecuali strict browser butuh sentuhan pertama)");
-    })();
+const btn = document.getElementById('checkBtn');
+const input = document.getElementById('username');
+const card = document.getElementById('resultCard');
+const statusLine = document.getElementById('statusLine');
+const gameInfo = document.getElementById('gameInfo');
+const gameName = document.getElementById('gameName');
+const placeName = document.getElementById('placeName');
+const errorBox = document.getElementById('error');
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Gagal fetch data');
+  return res.json();
+}
+
+btn.onclick = async () => {
+  const username = input.value.replace('@','').trim();
+  if(!username) return alert('Isi username dulu jirr');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span>';
+  card.classList.add('show');
+  errorBox.textContent = '';
+  gameInfo.style.display = 'none';
+  statusLine.textContent = 'Mengecek...';
+
+  try {
+    // 1. Dapetin UserId dari username
+    const userRes = await fetchJson(`https://users.roblox.com/v1/users/search?keyword=${username}&limit=1`);
+    if(!userRes.data.length) throw new Error('Username tidak ditemukan');
+    const userId = userRes.data[0].id;
+    const displayName = userRes.data[0].name;
+
+    // 2. Cek presence/status online
+    const presenceRes = await fetchJson(`https://presence.roblox.com/v1/presence/users`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({userIds:[userId]})
+    });
+    
+    const presence = presenceRes.userPresences[0];
+    const userPresenceType = presence.userPresenceType; // 0=Offline, 1=Online, 2=InGame, 3=InStudio
+
+    if(userPresenceType === 2 && presence.lastLocation) {
+      // In Game
+      statusLine.className = 'status-line online';
+      statusLine.textContent = `*@${displayName} sedang main ${presence.lastLocation}*`;
+      gameName.textContent = presence.placeId ? `Game ID: ${presence.placeId}` : presence.lastLocation;
+      placeName.textContent = presence.rootPlaceId ? `Place ID: ${presence.rootPlaceId}` : '';
+      gameInfo.style.display = 'block';
+    } else if(userPresenceType === 1) {
+      statusLine.className = 'status-line';
+      statusLine.textContent = `*@${displayName} sedang online di Roblox*`;
+    } else {
+      statusLine.className = 'status-line offline';
+      statusLine.textContent = `*@${displayName} sedang offline*`;
+    }
+
+  } catch(e) {
+    errorBox.textContent = e.message;
+    statusLine.textContent = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Cek';
+  }
+}
+
+// Enter to search
+input.addEventListener('keypress', e => { if(e.key==='Enter') btn.click(); });
 </script>
 </body>
 </html>
