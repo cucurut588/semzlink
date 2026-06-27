@@ -8,18 +8,23 @@
   :root { --bg: #0e0e16; --card: #1a1a2e; --accent: #7f5af0; --text: #fffffe; --muted: #94a1b2; --online: #2cb67d; --offline: #ef4565; }
     * { box-sizing: border-box; font-family: 'Poppins', sans-serif; }
   body { margin: 0; background: radial-gradient(1200px 600px at 80% -10%, #2a1b4d 0%, var(--bg) 50%); color: var(--text); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
- .wrap { width: 100%; max-width: 520px; background: rgba(26,26,46,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(127,90,240,0.2); border-radius: 24px; padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+.wrap { width: 100%; max-width: 520px; background: rgba(26,26,46,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(127,90,240,0.2); border-radius: 24px; padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
   h1 { margin: 0 0 8px; font-size: 24px; font-weight: 700; }
   p.sub { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
- .input-row { display: flex; gap: 10px; }
-  input { flex: 1; background: var(--card); border: 1px solid rgba(127,90,240,0.3); border-radius: 12px; padding: 14px 16px; color: var(--text); font-size: 15px; outline: none; }
-  button { background: var(--accent); border: 0; border-radius: 12px; padding: 14px 20px; color: white; font-weight: 600; cursor: pointer; }
- .card { margin-top: 24px; background: var(--card); border-radius: 16px; padding: 20px; display: none; }
- .card.show { display: block; }
- .status-line.online { color: var(--online); }
- .status-line.offline { color: var(--muted); }
- .error { color: var(--offline); margin-top: 12px; }
- .loader { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.2); border-top-color: white; border-radius: 50%; animation: spin.8s linear infinite; display: inline-block; }
+.input-row { display: flex; gap: 10px; }
+  input { flex: 1; background: var(--card); border: 1px solid rgba(127,90,240,0.3); border-radius: 12px; padding: 14px 16px; color: var(--text); font-size: 15px; outline: none; transition:.2s; }
+  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(127,90,240,0.2); }
+  button { background: var(--accent); border: 0; border-radius: 12px; padding: 14px 20px; color: white; font-weight: 600; cursor: pointer; transition:.2s; }
+  button:hover { filter: brightness(1.1); }
+.card { margin-top: 24px; background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: none; }
+.card.show { display: block; animation: fade.3s ease; }
+  @keyframes fade { from {opacity:0; transform: translateY(8px);} to {opacity:1; transform:none;} }
+.status-line { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+.status-line.online { color: var(--online); }
+.status-line.offline { color: var(--muted); }
+.avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--accent); }
+.error { color: var(--offline); margin-top: 12px; font-size: 14px; }
+.loader { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.2); border-top-color: white; border-radius: 50%; animation: spin.8s linear infinite; display: inline-block; }
   @keyframes spin { to {transform: rotate(360deg);} }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -29,7 +34,7 @@
     <h1>Roblox Status Tracker</h1>
     <p class="sub">Cek apakah player lagi main game apa. Gak perlu login.</p>
     <div class="input-row">
-      <input id="username" type="text" placeholder="Contoh: karyawansemz">
+      <input id="username" type="text" placeholder="Contoh: karyawansemz" spellcheck="false">
       <button id="checkBtn">Cek</button>
     </div>
     <div id="resultCard" class="card">
@@ -39,49 +44,64 @@
   </div>
 
 <script>
-const PROXY = 'https://api.allorigins.win/raw?url='; // Proxy anti CORS
 const btn = document.getElementById('checkBtn');
 const input = document.getElementById('username');
 const card = document.getElementById('resultCard');
 const statusLine = document.getElementById('statusLine');
 const errorBox = document.getElementById('error');
 
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Gagal fetch data');
+  return res.json();
+}
+
 btn.onclick = async () => {
   const username = input.value.replace('@','').trim();
   if(!username) return alert('Isi username dulu jirr');
+
   btn.disabled = true; btn.innerHTML = '<span class="loader"></span>';
   card.classList.add('show'); errorBox.textContent = ''; statusLine.textContent = 'Mengecek...';
 
   try {
-    const userRes = await fetch(PROXY + encodeURIComponent(`https://users.roblox.com/v1/users/search?keyword=${username}&limit=1`)).then(r=>r.json());
+    // 1. Dapetin UserId + Avatar
+    const userRes = await fetchJson(`https://users.roblox.com/v1/users/search?keyword=${username}&limit=1`);
     if(!userRes.data.length) throw new Error('Username tidak ditemukan');
     const userId = userRes.data[0].id;
     const displayName = userRes.data[0].name;
 
-    const presenceRes = await fetch(PROXY + encodeURIComponent(`https://presence.roblox.com/v1/presence/users`), {
+    const avatarRes = await fetchJson(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=48x48&format=Png&isCircular=true`);
+
+    // 2. Cek presence/status online
+    const presenceRes = await fetch(`https://presence.roblox.com/v1/presence/users`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({userIds:[userId]})
     }).then(r=>r.json());
 
     const presence = presenceRes.userPresences[0];
+    const avatarUrl = avatarRes.data[0].imageUrl;
+
     if(presence.userPresenceType === 2 && presence.lastLocation) {
+      // In Game
       statusLine.className = 'status-line online';
-      statusLine.textContent = `*@${displayName} sedang main ${presence.lastLocation}*`;
+      statusLine.innerHTML = `<img src="${avatarUrl}" class="avatar"> *@${displayName} sedang main ${presence.lastLocation}*`;
     } else if(presence.userPresenceType === 1) {
       statusLine.className = 'status-line';
-      statusLine.textContent = `*@${displayName} sedang online di Roblox*`;
+      statusLine.innerHTML = `<img src="${avatarUrl}" class="avatar"> *@${displayName} sedang online di Roblox*`;
     } else {
       statusLine.className = 'status-line offline';
-      statusLine.textContent = `*@${displayName} sedang offline*`;
+      statusLine.innerHTML = `<img src="${avatarUrl}" class="avatar"> *@${displayName} sedang offline*`;
     }
+
   } catch(e) {
-    errorBox.textContent = 'Error: ' + e.message + '. Coba refresh atau pake Netlify aja biar stabil.';
+    errorBox.textContent = e.message;
     statusLine.textContent = '';
   } finally {
     btn.disabled = false; btn.textContent = 'Cek';
   }
 }
+input.addEventListener('keypress', e => { if(e.key==='Enter') btn.click(); });
 </script>
 </body>
 </html>
